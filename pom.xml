@@ -8,8 +8,8 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>Sora-Framework</module>
 		<module>Sora-Api</module>
+		<module>Sora-Framework</module>
 	</modules>
 
 	<properties>
