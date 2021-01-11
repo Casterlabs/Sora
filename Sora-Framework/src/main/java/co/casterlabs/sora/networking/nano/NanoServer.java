@@ -72,7 +72,7 @@ public class NanoServer extends NanoWSD implements Server {
         return new IStatus() {
             @Override
             public String getDescription() {
-                return status.getDescription();
+                return status.getStatusCode() + " " + status.getDescription(); // What the hell Nano
             }
 
             @Override
