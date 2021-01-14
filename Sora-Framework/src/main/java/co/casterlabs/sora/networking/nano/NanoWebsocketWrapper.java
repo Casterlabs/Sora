@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import co.casterlabs.sora.api.websockets.WebsocketCloseCode;
 import co.casterlabs.sora.api.websockets.WebsocketFrameType;
@@ -30,6 +31,16 @@ public class NanoWebsocketWrapper extends WebSocket {
     // Nano WebSocket Impl
     @Override
     protected void onOpen() {
+        new Thread(() -> {
+            while (this.isOpen()) {
+                try {
+                    this.ping(":x-sora-ping".getBytes());
+
+                    TimeUnit.SECONDS.sleep(2);
+                } catch (Exception ignored) {}
+            }
+        }).start();
+
         this.listener.onOpen(this.soraWebsocket);
     }
 
