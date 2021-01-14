@@ -1,6 +1,10 @@
 package co.casterlabs.sora.api.http;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -24,7 +28,7 @@ public class HttpResponse {
     private InputStream responseStream;
     private TransferEncoding mode;
     private HttpStatus status;
-    private int length = -1;
+    private long length = -1;
 
     private HttpResponse(InputStream responseStream, TransferEncoding mode, HttpStatus status) {
         this.responseStream = responseStream;
@@ -68,15 +72,15 @@ public class HttpResponse {
     /* Creating                         */
     /* -------------------------------- */
 
-    public static HttpResponse newFixedLengthResponse(HttpStatus status, String body) {
+    public static HttpResponse newFixedLengthResponse(@NonNull HttpStatus status, @NonNull String body) {
         return newFixedLengthResponse(status, body.getBytes(StandardCharsets.UTF_8));
     }
 
-    public static HttpResponse newFixedLengthResponse(HttpStatus status, byte[] body) {
+    public static HttpResponse newFixedLengthResponse(@NonNull HttpStatus status, @NonNull byte[] body) {
         return newFixedLengthResponse(status, new ByteArrayInputStream(body), body.length);
     }
 
-    public static HttpResponse newFixedLengthResponse(HttpStatus status, InputStream responseStream, int length) {
+    public static HttpResponse newFixedLengthResponse(@NonNull HttpStatus status, @NonNull InputStream responseStream, long length) {
         HttpResponse response = new HttpResponse(responseStream, TransferEncoding.FIXED_LENGTH, status);
 
         response.length = length;
@@ -84,7 +88,21 @@ public class HttpResponse {
         return response;
     }
 
-    public static HttpResponse newChunkedResponse(HttpStatus status, InputStream responseStream) {
+    public static HttpResponse newFixedLengthFileResponse(@NonNull HttpStatus status, @NonNull File file) throws FileNotFoundException {
+        FileInputStream fin = new FileInputStream(file);
+
+        return newFixedLengthResponse(status, fin, file.length());
+    }
+
+    public static HttpResponse newFixedLengthFileResponse(@NonNull HttpStatus status, @NonNull File file, long skip, long length) throws FileNotFoundException, IOException {
+        FileInputStream fin = new FileInputStream(file);
+
+        fin.skip(skip);
+
+        return newFixedLengthResponse(status, fin, length);
+    }
+
+    public static HttpResponse newChunkedResponse(@NonNull HttpStatus status, @NonNull InputStream responseStream) {
         return new HttpResponse(responseStream, TransferEncoding.CHUNKED, status);
     }
 

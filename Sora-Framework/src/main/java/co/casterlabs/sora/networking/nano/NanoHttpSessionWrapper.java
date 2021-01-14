@@ -8,18 +8,18 @@ import java.util.Map;
 import org.jetbrains.annotations.Nullable;
 
 import co.casterlabs.sora.api.http.HttpMethod;
-import co.casterlabs.sora.api.websockets.WebsocketSession;
+import co.casterlabs.sora.api.http.HttpSession;
 import fi.iki.elonen.NanoHTTPD.IHTTPSession;
 import fi.iki.elonen.NanoHTTPD.ResponseException;
 import lombok.Getter;
 import lombok.NonNull;
 
-public class NanoHttpSessionWrapper extends WebsocketSession {
+public class NanoHttpSessionWrapper extends HttpSession {
     private @Getter IHTTPSession nanoSession;
 
     private byte[] body;
 
-    public NanoHttpSessionWrapper(IHTTPSession nanoSession) {
+    public NanoHttpSessionWrapper(@NonNull IHTTPSession nanoSession) {
         this.nanoSession = nanoSession;
     }
 
@@ -73,7 +73,7 @@ public class NanoHttpSessionWrapper extends WebsocketSession {
 
                 return this.body;
             } else {
-                return this.body = new byte[0];
+                throw new IOException("No body was sent");
             }
         } else {
             return this.body;

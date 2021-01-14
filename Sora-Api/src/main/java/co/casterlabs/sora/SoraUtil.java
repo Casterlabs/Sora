@@ -1,6 +1,20 @@
 package co.casterlabs.sora;
 
+import java.io.IOException;
+import java.io.InputStream;
+
+import lombok.NonNull;
+
 public class SoraUtil {
+
+    public static byte[] readAllBytes(@NonNull InputStream in, int length) throws IOException {
+        byte[] bytes = new byte[length];
+
+        in.read(bytes);
+        in.close();
+
+        return bytes;
+    }
 
     public static <T> boolean arrayContains(T[] arr, T find) {
         for (T item : arr) {
