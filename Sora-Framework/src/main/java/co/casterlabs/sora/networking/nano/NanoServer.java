@@ -7,10 +7,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import co.casterlabs.sora.SoraFramework;
+import co.casterlabs.sora.api.DropConnectionException;
 import co.casterlabs.sora.api.http.HttpResponse;
 import co.casterlabs.sora.api.http.HttpResponse.TransferEncoding;
+import co.casterlabs.sora.api.http.HttpSession;
 import co.casterlabs.sora.api.http.HttpStatus;
 import co.casterlabs.sora.api.websockets.WebsocketListener;
+import co.casterlabs.sora.api.websockets.WebsocketSession;
 import co.casterlabs.sora.networking.Server;
 import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoHTTPD.Response.IStatus;
@@ -44,46 +47,48 @@ public class NanoServer extends NanoWSD implements Server {
     // Serves http sessions or calls super to serve websockets
     @Override
     public Response serve(IHTTPSession nanoSession) {
-        try {
-            if (this.isWebsocketRequested(nanoSession)) {
+        if (this.isWebsocketRequested(nanoSession)) {
+            try {
                 return super.serve(nanoSession);
-            } else {
-                HttpResponse response = SoraFramework.getInstance().getSora().serveHttp(new NanoHttpSessionWrapper(nanoSession));
+            } catch (NullPointerException ignored) {}
+        } else {
+            HttpSession session = new NanoHttpSessionWrapper(nanoSession);
+            HttpResponse response = SoraFramework.getInstance().getSora().serveHttp(session);
 
-                if ((response != null) && (response.getStatus() != HttpStatus.NO_RESPONSE)) {
-                    IStatus status = convertStatus(response.getStatus());
-                    String mime = response.getAllHeaders().getOrDefault("content-type", "text/plaintext");
+            if ((response != null) && (response.getStatus() != HttpStatus.NO_RESPONSE)) {
+                IStatus status = convertStatus(response.getStatus());
+                String mime = response.getAllHeaders().getOrDefault("content-type", "text/plaintext");
 
-                    response.removeHeader("content-type");
+                response.removeHeader("content-type");
 
-                    Response nanoResponse;
+                Response nanoResponse;
 
-                    if (response.getMode() == TransferEncoding.CHUNKED) {
-                        nanoResponse = NanoHTTPD.newChunkedResponse(status, mime, response.getResponseStream());
-                    } else {
-                        nanoResponse = NanoHTTPD.newFixedLengthResponse(status, mime, response.getResponseStream(), response.getLength());
-                    }
-
-                    for (Map.Entry<String, String> header : response.getAllHeaders().entrySet()) {
-                        nanoResponse.addHeader(header.getKey(), header.getValue());
-                    }
-
-                    return nanoResponse;
+                if (response.getMode() == TransferEncoding.CHUNKED) {
+                    nanoResponse = NanoHTTPD.newChunkedResponse(status, mime, response.getResponseStream());
+                } else {
+                    nanoResponse = NanoHTTPD.newFixedLengthResponse(status, mime, response.getResponseStream(), response.getLength());
                 }
+
+                for (Map.Entry<String, String> header : response.getAllHeaders().entrySet()) {
+                    nanoResponse.addHeader(header.getKey(), header.getValue());
+                }
+
+                return nanoResponse;
             }
-        } catch (NullPointerException ignored) {}
+        }
 
         // NanoHTTPD.class:194, this wild card allows us to drop
         // the connection by throwing an unchecked exception.
         /*
             } catch (Exception e) {
         */
-        throw new RuntimeException("Drop connection.");
+        throw new DropConnectionException();
     }
 
     @Override
     protected WebSocket openWebSocket(IHTTPSession nanoSession) {
-        WebsocketListener listener = SoraFramework.getInstance().getSora().serveWebsocket(new NanoWebsocketSessionWrapper(nanoSession));
+        WebsocketSession session = new NanoWebsocketSessionWrapper(nanoSession);
+        WebsocketListener listener = SoraFramework.getInstance().getSora().serveWebsocket(session);
 
         if (listener != null) {
             return new NanoWebsocketWrapper(nanoSession, listener);

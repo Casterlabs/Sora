@@ -4,12 +4,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Scanner;
 
+import co.casterlabs.sora.networking.Server;
 import co.casterlabs.sora.networking.nano.NanoServer;
+import co.casterlabs.sora.networking.undertow.UndertowServer;
 import lombok.SneakyThrows;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import xyz.e3ndr.fastloggingframework.FastLoggingFramework;
+import xyz.e3ndr.fastloggingframework.logging.FastLogger;
 import xyz.e3ndr.fastloggingframework.logging.LogLevel;
 
 @Command(name = "sora", mixinStandardHelpOptions = true, version = "Sora", description = "Starts Sora")
@@ -33,6 +36,12 @@ public class SoraLauncher implements Runnable {
     }, description = "Enables debugging")
     private boolean debug = false;
 
+    @Option(names = {
+            "-s",
+            "--server-implementation"
+    }, description = "Sets the desired server implementation")
+    private ServerImplementation implementation = ServerImplementation.NANO;
+
     public static void main(String[] args) throws IOException, InterruptedException {
         new CommandLine(new SoraLauncher()).execute(args);
     }
@@ -44,7 +53,23 @@ public class SoraLauncher implements Runnable {
             FastLoggingFramework.setDefaultLevel(LogLevel.DEBUG);
         }
 
-        SoraFramework framework = new SoraFramework(new NanoServer(this.bindAddress, this.port));
+        Server server;
+
+        switch (this.implementation) {
+            case UNDERTOW:
+                FastLogger.logStatic("Using Undertow as the server implementation.");
+                server = new UndertowServer(this.bindAddress, this.port);
+                break;
+
+            case NANO:
+            default:
+                FastLogger.logStatic("Using Nano as the server implementation.");
+                server = new NanoServer(this.bindAddress, this.port);
+                break;
+
+        }
+
+        SoraFramework framework = new SoraFramework(server);
 
         File pluginsDir = new File("./plugins");
 
@@ -56,7 +81,7 @@ public class SoraLauncher implements Runnable {
             }
         }
 
-        framework.getServer().start();
+        server.start();
 
         SoraFramework.LOGGER.info("(Http) Sora bound to %d", this.port);
 
@@ -67,6 +92,12 @@ public class SoraLauncher implements Runnable {
         }
 
         in.close();
+    }
+
+    public static enum ServerImplementation {
+        NANO,
+        UNDERTOW;
+
     }
 
 }

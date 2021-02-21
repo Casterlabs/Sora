@@ -10,7 +10,7 @@ import lombok.NonNull;
 import xyz.e3ndr.fastloggingframework.logging.FastLogger;
 
 public abstract class SoraPlugin {
-    private final @Getter FastLogger logger = new FastLogger();
+    private final @Getter FastLogger logger = new FastLogger(this.getName());
     private URLClassLoader classLoader;
 
     public abstract void onInit(Sora sora);

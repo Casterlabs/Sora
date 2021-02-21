@@ -36,7 +36,7 @@ public class NanoWebsocketWrapper extends WebSocket {
                 try {
                     this.ping(":x-sora-ping".getBytes());
 
-                    TimeUnit.SECONDS.sleep(2);
+                    TimeUnit.SECONDS.sleep(1);
                 } catch (Exception ignored) {}
             }
         }).start();

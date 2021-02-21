@@ -15,6 +15,12 @@ public class NanoWebsocketSessionWrapper extends WebsocketSession {
         this.nanoSession = nanoSession;
     }
 
+    // Headers
+    @Override
+    public @NonNull Map<String, String> getHeaders() {
+        return this.nanoSession.getHeaders();
+    }
+
     // URI
     @Override
     public String getUri() {

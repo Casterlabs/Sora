@@ -12,5 +12,4 @@
 *plugins/
 
 # Misc
-Sora-Framework/src/main/java/co/casterlabs/sora/networking/undertow/*
 Sora-Framework/src/main/java/co/casterlabs/sora/Test.java

@@ -24,7 +24,6 @@ public class NanoHttpSessionWrapper extends HttpSession {
     }
 
     // Request headers
-
     @Override
     public @NonNull Map<String, String> getHeaders() {
         return this.nanoSession.getHeaders();
