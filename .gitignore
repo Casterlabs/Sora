@@ -9,7 +9,7 @@
 
 # Common
 *target/
-*plugins/
+Sora-Framework/plugins/
 
 # Misc
 Sora-Framework/src/main/java/co/casterlabs/sora/Test.java
