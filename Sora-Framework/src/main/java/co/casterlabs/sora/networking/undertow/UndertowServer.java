@@ -85,6 +85,7 @@ public class UndertowServer implements Server, HttpHandler, WebSocketConnectionC
         } catch (DropConnectionException e) {
             exchange.getConnection().close();
         } catch (Exception e) {
+            exchange.getConnection().close();
             e.printStackTrace();
         }
     }

@@ -99,6 +99,7 @@ public class UndertowHttpSessionWrapper extends HttpSession {
             long length = this.exchange.getRequestContentLength();
 
             if (length != -1) {
+                this.exchange.startBlocking();
                 return this.body = SoraUtil.readAllBytes(this.exchange.getInputStream(), (int) length);
             } else {
                 throw new IOException("No body was sent");
