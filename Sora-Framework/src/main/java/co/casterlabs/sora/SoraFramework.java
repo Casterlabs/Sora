@@ -1,6 +1,9 @@
 package co.casterlabs.sora;
 
-import co.casterlabs.sora.networking.Server;
+import java.io.IOException;
+
+import co.casterlabs.rakurai.io.http.server.HttpServer;
+import co.casterlabs.rakurai.io.http.server.HttpServerBuilder;
 import co.casterlabs.sora.plugins.SoraPlugins;
 import lombok.Getter;
 import xyz.e3ndr.fastloggingframework.logging.FastLogger;
@@ -12,11 +15,11 @@ public class SoraFramework {
     private static @Getter SoraFramework instance;
 
     private SoraPlugins sora = new SoraPlugins();
-    private Server server;
+    private HttpServer server;
 
-    public SoraFramework(Server server) {
+    public SoraFramework(HttpServerBuilder builder) throws IOException {
         if (instance == null) {
-            this.server = server;
+            this.server = builder.build(this.sora);
 
             instance = this;
         } else {

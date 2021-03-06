@@ -11,20 +11,21 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.jetbrains.annotations.Nullable;
 
+import co.casterlabs.rakurai.io.http.HttpResponse;
+import co.casterlabs.rakurai.io.http.HttpSession;
+import co.casterlabs.rakurai.io.http.server.HttpListener;
+import co.casterlabs.rakurai.io.http.websocket.WebsocketListener;
+import co.casterlabs.rakurai.io.http.websocket.WebsocketSession;
 import co.casterlabs.sora.Sora;
 import co.casterlabs.sora.SoraFramework;
 import co.casterlabs.sora.api.SoraPlugin;
 import co.casterlabs.sora.api.http.HttpProvider;
-import co.casterlabs.sora.api.http.HttpResponse;
-import co.casterlabs.sora.api.http.HttpSession;
-import co.casterlabs.sora.api.websockets.WebsocketListener;
 import co.casterlabs.sora.api.websockets.WebsocketProvider;
-import co.casterlabs.sora.api.websockets.WebsocketSession;
 import co.casterlabs.sora.plugins.http.HttpProviderWrapper;
 import co.casterlabs.sora.plugins.websocket.WebsocketProviderWrapper;
 import lombok.NonNull;
 
-public class SoraPlugins implements Sora {
+public class SoraPlugins implements Sora, HttpListener {
     private Map<String, SoraPlugin> plugins = new HashMap<>();
 
     private Map<String, List<WebsocketProviderWrapper>> pluginWebsocketWrappers = new ConcurrentHashMap<>();
@@ -119,7 +120,8 @@ public class SoraPlugins implements Sora {
         }
     }
 
-    public @Nullable HttpResponse serveHttp(@NonNull HttpSession session) {
+    @Override
+    public @Nullable HttpResponse serveSession(@NonNull String host, @NonNull HttpSession session, boolean secure) {
         HttpProviderWrapper[] wrappers = this.httpWrappers.toArray(new HttpProviderWrapper[0]);
 
         for (HttpProviderWrapper wrapper : wrappers) {
@@ -142,7 +144,8 @@ public class SoraPlugins implements Sora {
         return null;
     }
 
-    public @Nullable WebsocketListener serveWebsocket(@NonNull WebsocketSession session) {
+    @Override
+    public @Nullable WebsocketListener serveWebsocketSession(@NonNull String host, @NonNull WebsocketSession session, boolean secure) {
         for (WebsocketProviderWrapper wrapper : this.websocketWrappers.toArray(new WebsocketProviderWrapper[0])) {
             WebsocketListener listener = wrapper.serve(session);
 

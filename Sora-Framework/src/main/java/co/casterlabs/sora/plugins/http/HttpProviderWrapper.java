@@ -4,9 +4,9 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
+import co.casterlabs.rakurai.io.http.HttpResponse;
+import co.casterlabs.rakurai.io.http.HttpSession;
 import co.casterlabs.sora.api.http.HttpProvider;
-import co.casterlabs.sora.api.http.HttpResponse;
-import co.casterlabs.sora.api.http.HttpSession;
 import lombok.NonNull;
 
 public class HttpProviderWrapper {

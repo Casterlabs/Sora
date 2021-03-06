@@ -4,9 +4,9 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
-import co.casterlabs.sora.api.websockets.WebsocketListener;
+import co.casterlabs.rakurai.io.http.websocket.WebsocketListener;
+import co.casterlabs.rakurai.io.http.websocket.WebsocketSession;
 import co.casterlabs.sora.api.websockets.WebsocketProvider;
-import co.casterlabs.sora.api.websockets.WebsocketSession;
 import lombok.NonNull;
 
 public class WebsocketProviderWrapper {

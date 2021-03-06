@@ -1,5 +1,8 @@
 package co.casterlabs.sora.api.http;
 
+import co.casterlabs.rakurai.io.http.HttpResponse;
+import co.casterlabs.rakurai.io.http.HttpSession;
+
 /**
  * For tagging classes with http listener methods. Example:
  * 

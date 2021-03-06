@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 import org.jetbrains.annotations.Nullable;
 
-import co.casterlabs.sora.api.http.HttpMethod;
+import co.casterlabs.rakurai.io.http.HttpMethod;
 import lombok.NonNull;
 
 /**
