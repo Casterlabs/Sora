@@ -42,6 +42,10 @@ public class SoraLauncher implements Runnable {
     private HttpServerImplementation implementation = HttpServerImplementation.NANO;
 
     public static void main(String[] args) throws IOException, InterruptedException {
+        FastLogger.logStatic(LogLevel.WARNING, "Due to some inefficiencies in the plugin loading system, Sora will consume more ram than is actually required.");
+        FastLogger.logStatic(LogLevel.WARNING, "It is recommended you use aggressive garbage collection tunings like these:");
+        FastLogger.logStatic(LogLevel.WARNING, "-XX:GCTimeRatio=19 -XX:MinHeapFreeRatio=20 -XX:MaxHeapFreeRatio=30\n");
+
         new CommandLine(new SoraLauncher()).execute(args);
     }
 
