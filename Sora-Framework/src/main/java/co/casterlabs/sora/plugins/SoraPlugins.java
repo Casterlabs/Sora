@@ -99,6 +99,9 @@ public class SoraPlugins implements Sora, HttpListener {
 
             try {
                 plugin.onClose();
+            } catch (Throwable ignored) {}
+
+            try {
                 loader.close();
             } catch (Throwable ignored) {}
 
