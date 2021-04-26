@@ -21,7 +21,7 @@ public class SoraLauncher implements Runnable {
             "-b",
             "--bind"
     }, description = "The address to bind on")
-    private String bindAddress;
+    private String bindAddress = "0.0.0.0";
 
     @Option(names = {
             "-p",
