@@ -6,7 +6,7 @@ import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -30,11 +30,20 @@ public class PluginLoader {
                 }, PluginLoader.class.getClassLoader());
 
                 Reflections reflections = new Reflections(classLoader);
+
                 Set<Class<?>> types = reflections.getTypesAnnotatedWith(PluginImplementation.class);
 
-                List<SoraPlugin> plugins = new ArrayList<>();
+                List<SoraPlugin> plugins = new LinkedList<>();
+
+                // Free an ungodly amount of ram, Reflections seems to be inefficient.
+                reflections = null;
+                System.gc();
 
                 if (types.isEmpty()) {
+                    classLoader.close();
+
+                    classLoader = null;
+
                     throw new IOException("No implementations are present");
                 } else {
                     for (Class<?> clazz : types) {
