@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Collection;
 
 import co.casterlabs.sora.api.SoraPlugin;
+import lombok.SneakyThrows;
 import xyz.e3ndr.consolidate.CommandEvent;
 import xyz.e3ndr.consolidate.CommandRegistry;
 import xyz.e3ndr.consolidate.Resolver;
@@ -94,6 +95,7 @@ public class SoraCommands implements CommandListener<Void> {
         }
     }
 
+    @SneakyThrows
     public static void execute(String input) {
         try {
             registry.execute(input);

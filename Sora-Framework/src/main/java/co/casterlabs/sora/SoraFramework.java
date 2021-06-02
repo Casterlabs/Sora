@@ -27,4 +27,10 @@ public class SoraFramework {
         }
     }
 
+    public void startHttpServer() throws IOException {
+        this.server.start();
+
+        SoraFramework.LOGGER.info("(Http) Sora bound to %d", this.server.getPort());
+    }
+
 }

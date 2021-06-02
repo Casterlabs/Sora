@@ -6,7 +6,9 @@ import java.util.Scanner;
 
 import co.casterlabs.rakurai.io.http.server.HttpServerBuilder;
 import co.casterlabs.rakurai.io.http.server.HttpServerImplementation;
+import lombok.Data;
 import lombok.SneakyThrows;
+import lombok.experimental.Accessors;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -14,6 +16,8 @@ import xyz.e3ndr.fastloggingframework.FastLoggingFramework;
 import xyz.e3ndr.fastloggingframework.logging.FastLogger;
 import xyz.e3ndr.fastloggingframework.logging.LogLevel;
 
+@Data
+@Accessors(chain = true)
 @Command(name = "sora", mixinStandardHelpOptions = true, version = "Sora", description = "Starts Sora")
 public class SoraLauncher implements Runnable {
 
@@ -42,16 +46,30 @@ public class SoraLauncher implements Runnable {
     private HttpServerImplementation implementation = HttpServerImplementation.NANO;
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        FastLogger.logStatic(LogLevel.WARNING, "Due to some inefficiencies in the plugin loading system, Sora will consume more ram than is actually required.");
-        FastLogger.logStatic(LogLevel.WARNING, "It is recommended you use aggressive garbage collection tunings like these:");
-        FastLogger.logStatic(LogLevel.WARNING, "-XX:GCTimeRatio=19 -XX:MinHeapFreeRatio=20 -XX:MaxHeapFreeRatio=30\n");
-
         new CommandLine(new SoraLauncher()).execute(args);
     }
 
+    /**
+     * This is used by the command line interface to start Sora with plugins
+     * ({@link #buildWithPluginLoader()}) and to listen for console input.
+     */
     @SneakyThrows
+    @Deprecated
     @Override
     public void run() {
+        SoraFramework framework = this.buildWithPluginLoader();
+
+        framework.startHttpServer();
+
+        try (Scanner in = new Scanner(System.in)) {
+
+            while (in.hasNext()) {
+                SoraCommands.execute(in.nextLine());
+            }
+        }
+    }
+
+    public SoraFramework buildWithoutPluginLoader() throws IOException {
         if (this.debug) {
             FastLoggingFramework.setDefaultLevel(LogLevel.TRACE);
         }
@@ -75,7 +93,15 @@ public class SoraLauncher implements Runnable {
         builder.setHostname(this.bindAddress);
         builder.setPort(this.port);
 
-        SoraFramework framework = new SoraFramework(builder);
+        return new SoraFramework(builder);
+    }
+
+    public SoraFramework buildWithPluginLoader() throws IOException {
+        FastLogger.logStatic(LogLevel.WARNING, "Due to some inefficiencies in the plugin loading system, Sora will consume more ram than is actually required.");
+        FastLogger.logStatic(LogLevel.WARNING, "It is recommended you use aggressive garbage collection tunings like these:");
+        FastLogger.logStatic(LogLevel.WARNING, "-XX:GCTimeRatio=19 -XX:MinHeapFreeRatio=20 -XX:MaxHeapFreeRatio=30\n");
+
+        SoraFramework framework = this.buildWithoutPluginLoader();
 
         File pluginsDir = new File("./plugins");
 
@@ -87,17 +113,7 @@ public class SoraLauncher implements Runnable {
             }
         }
 
-        framework.getServer().start();
-
-        SoraFramework.LOGGER.info("(Http) Sora bound to %d", this.port);
-
-        Scanner in = new Scanner(System.in);
-
-        while (in.hasNext()) {
-            SoraCommands.execute(in.nextLine());
-        }
-
-        in.close();
+        return framework;
     }
 
 }
