@@ -14,6 +14,8 @@ import org.jetbrains.annotations.Nullable;
 import co.casterlabs.rakurai.io.http.HttpResponse;
 import co.casterlabs.rakurai.io.http.HttpSession;
 import co.casterlabs.rakurai.io.http.server.HttpListener;
+import co.casterlabs.rakurai.io.http.websocket.Websocket;
+import co.casterlabs.rakurai.io.http.websocket.WebsocketFrame;
 import co.casterlabs.rakurai.io.http.websocket.WebsocketListener;
 import co.casterlabs.rakurai.io.http.websocket.WebsocketSession;
 import co.casterlabs.sora.Sora;
@@ -22,6 +24,7 @@ import co.casterlabs.sora.api.SoraPlugin;
 import co.casterlabs.sora.api.http.HttpProvider;
 import co.casterlabs.sora.api.websockets.WebsocketProvider;
 import co.casterlabs.sora.plugins.http.HttpProviderWrapper;
+import co.casterlabs.sora.plugins.websocket.WebocketEndpointWrapper.WebsocketListenerPluginPair;
 import co.casterlabs.sora.plugins.websocket.WebsocketProviderWrapper;
 import lombok.NonNull;
 
@@ -46,7 +49,7 @@ public class SoraPlugins implements Sora, HttpListener {
 
     @Override
     public void addWebsocketProvider(@NonNull SoraPlugin plugin, @NonNull WebsocketProvider websocketProvider) {
-        WebsocketProviderWrapper wrapper = new WebsocketProviderWrapper(websocketProvider);
+        WebsocketProviderWrapper wrapper = new WebsocketProviderWrapper(plugin, websocketProvider);
 
         this.pluginWebsocketWrappers.get(plugin.getId()).add(wrapper);
         this.websocketWrappers.add(wrapper);
@@ -98,7 +101,7 @@ public class SoraPlugins implements Sora, HttpListener {
             URLClassLoader loader = plugin.getClassLoader();
 
             try {
-                plugin.onClose();
+                plugin.close();
             } catch (Throwable ignored) {}
 
             try {
@@ -150,10 +153,42 @@ public class SoraPlugins implements Sora, HttpListener {
     @Override
     public @Nullable WebsocketListener serveWebsocketSession(@NonNull String host, @NonNull WebsocketSession session, boolean secure) {
         for (WebsocketProviderWrapper wrapper : this.websocketWrappers.toArray(new WebsocketProviderWrapper[0])) {
-            WebsocketListener listener = wrapper.serve(session);
+            WebsocketListenerPluginPair pair = wrapper.serve(session);
 
-            if (listener != null) {
-                return listener;
+            if (pair != null) {
+                WebsocketListener original = pair.getListener();
+                SoraPlugin plugin = pair.getPlugin();
+
+                return new WebsocketListener() {
+
+                    @Override
+                    public void onOpen(Websocket websocket) {
+                        try {
+                            plugin
+                                .getWebsockets()
+                                .add(websocket);
+                        } finally {
+                            original.onOpen(websocket);
+                        }
+                    }
+
+                    @Override
+                    public void onClose(Websocket websocket) {
+                        try {
+                            plugin
+                                .getWebsockets()
+                                .remove(websocket);
+                        } finally {
+                            original.onClose(websocket);
+                        }
+                    }
+
+                    @Override
+                    public void onFrame(Websocket websocket, WebsocketFrame frame) {
+                        original.onFrame(websocket, frame);
+                    }
+
+                };
             }
         }
 

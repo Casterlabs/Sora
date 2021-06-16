@@ -9,10 +9,12 @@ import org.jetbrains.annotations.Nullable;
 
 import co.casterlabs.rakurai.io.http.websocket.WebsocketListener;
 import co.casterlabs.rakurai.io.http.websocket.WebsocketSession;
+import co.casterlabs.sora.api.SoraPlugin;
 import co.casterlabs.sora.api.websockets.WebsocketProvider;
 import co.casterlabs.sora.api.websockets.annotations.WebsocketEndpoint;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -26,14 +28,17 @@ public class WebocketEndpointWrapper {
 
     private WebsocketEndpoint annotation;
     private WebsocketProvider provider;
+    private SoraPlugin plugin;
     private Method method;
 
-    public @Nullable WebsocketListener serve(@NonNull WebsocketSession session) {
+    public @Nullable WebsocketListenerPluginPair serve(@NonNull WebsocketSession session) {
         boolean uriMatches = session.getUri().matches(this.annotation.uri());
 
         if (uriMatches) {
             try {
-                return (WebsocketListener) this.method.invoke(this.provider, session);
+                WebsocketListener listener = (WebsocketListener) this.method.invoke(this.provider, session);
+
+                return new WebsocketListenerPluginPair(this.plugin, listener);
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                 e.printStackTrace();
 
@@ -44,14 +49,14 @@ public class WebocketEndpointWrapper {
         return null;
     }
 
-    public static List<WebocketEndpointWrapper> wrap(@NonNull WebsocketProvider provider) {
+    public static List<WebocketEndpointWrapper> wrap(@NonNull SoraPlugin plugin, @NonNull WebsocketProvider provider) {
         List<WebocketEndpointWrapper> wrappers = new ArrayList<>();
 
         for (Method method : provider.getClass().getMethods()) {
             if (isListenerMethod(method)) {
                 WebsocketEndpoint annotation = method.getAnnotation(WebsocketEndpoint.class);
 
-                wrappers.add(new WebocketEndpointWrapper(annotation, provider, method));
+                wrappers.add(new WebocketEndpointWrapper(annotation, provider, plugin, method));
             }
         }
 

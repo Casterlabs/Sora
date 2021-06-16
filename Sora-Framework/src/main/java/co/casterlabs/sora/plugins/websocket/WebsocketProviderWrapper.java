@@ -4,27 +4,30 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
-import co.casterlabs.rakurai.io.http.websocket.WebsocketListener;
 import co.casterlabs.rakurai.io.http.websocket.WebsocketSession;
+import co.casterlabs.sora.api.SoraPlugin;
 import co.casterlabs.sora.api.websockets.WebsocketProvider;
+import co.casterlabs.sora.plugins.websocket.WebocketEndpointWrapper.WebsocketListenerPluginPair;
 import lombok.NonNull;
 
 public class WebsocketProviderWrapper {
     private List<WebocketEndpointWrapper> endpoints;
     private WebsocketProvider provider;
+    private SoraPlugin plugin;
 
-    public WebsocketProviderWrapper(WebsocketProvider provider) {
+    public WebsocketProviderWrapper(SoraPlugin plugin, WebsocketProvider provider) {
         this.provider = provider;
+        this.plugin = plugin;
 
-        this.endpoints = WebocketEndpointWrapper.wrap(this.provider);
+        this.endpoints = WebocketEndpointWrapper.wrap(this.plugin, this.provider);
     }
 
-    public @Nullable WebsocketListener serve(@NonNull WebsocketSession session) {
+    public @Nullable WebsocketListenerPluginPair serve(@NonNull WebsocketSession session) {
         for (WebocketEndpointWrapper endpoint : this.endpoints) {
-            WebsocketListener listener = endpoint.serve(session);
+            WebsocketListenerPluginPair pair = endpoint.serve(session);
 
-            if (listener != null) {
-                return listener;
+            if (pair != null) {
+                return pair;
             }
         }
 
