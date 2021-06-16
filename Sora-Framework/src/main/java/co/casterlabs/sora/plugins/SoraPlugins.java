@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import co.casterlabs.rakurai.io.http.HttpResponse;
 import co.casterlabs.rakurai.io.http.HttpSession;
+import co.casterlabs.rakurai.io.http.StandardHttpStatus;
 import co.casterlabs.rakurai.io.http.server.HttpListener;
 import co.casterlabs.rakurai.io.http.websocket.Websocket;
 import co.casterlabs.rakurai.io.http.websocket.WebsocketFrame;
@@ -22,6 +24,7 @@ import co.casterlabs.sora.Sora;
 import co.casterlabs.sora.SoraFramework;
 import co.casterlabs.sora.api.SoraPlugin;
 import co.casterlabs.sora.api.http.HttpProvider;
+import co.casterlabs.sora.api.http.SoraHttpSession;
 import co.casterlabs.sora.api.websockets.WebsocketProvider;
 import co.casterlabs.sora.plugins.http.HttpProviderWrapper;
 import co.casterlabs.sora.plugins.websocket.WebocketEndpointWrapper.WebsocketListenerPluginPair;
@@ -139,15 +142,19 @@ public class SoraPlugins implements Sora, HttpListener {
         }
 
         // Try to return a default response.
-        for (HttpProviderWrapper wrapper : wrappers) {
-            HttpResponse response = wrapper.onNoProvider(session);
+        {
+            SoraHttpSession soraSession = new SoraHttpSession(session, Collections.emptyMap());
 
-            if (response != null) {
-                return response;
+            for (HttpProviderWrapper wrapper : wrappers) {
+                HttpResponse response = wrapper.onNoProvider(soraSession);
+
+                if (response != null) {
+                    return response;
+                }
             }
         }
 
-        return null;
+        return HttpResponse.newFixedLengthResponse(StandardHttpStatus.NOT_IMPLEMENTED, new byte[0]);
     }
 
     @Override

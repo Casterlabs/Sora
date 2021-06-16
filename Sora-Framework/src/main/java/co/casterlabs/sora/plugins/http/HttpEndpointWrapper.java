@@ -11,35 +11,45 @@ import co.casterlabs.rakurai.io.http.HttpResponse;
 import co.casterlabs.rakurai.io.http.HttpSession;
 import co.casterlabs.sora.SoraUtil;
 import co.casterlabs.sora.api.http.HttpProvider;
+import co.casterlabs.sora.api.http.SoraHttpSession;
 import co.casterlabs.sora.api.http.annotations.HttpEndpoint;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.NonNull;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class HttpEndpointWrapper {
     private HttpEndpoint annotation;
     private HttpProvider provider;
     private Method method;
 
+    private URIParameterMeta uriMeta;
+
+    private HttpEndpointWrapper(HttpEndpoint annotation, HttpProvider provider, Method method) {
+        this.annotation = annotation;
+        this.provider = provider;
+        this.method = method;
+
+        this.method.setAccessible(true);
+
+        this.uriMeta = new URIParameterMeta(this.annotation.uri());
+    }
+
     public @Nullable HttpResponse serve(@NonNull HttpSession session) {
-        boolean uriMatches = session.getUri().matches(this.annotation.uri());
+        if (SoraUtil.arrayContains(this.annotation.allowedMethods(), session.getMethod()) &&
+            session.getUri().matches(this.uriMeta.getUriRegex())) {
 
-        if (uriMatches) {
-            if (SoraUtil.arrayContains(this.annotation.allowedMethods(), session.getMethod())) {
-                try {
-                    HttpResponse response = (HttpResponse) this.method.invoke(this.provider, session);
+            try {
+                SoraHttpSession soraSession = new SoraHttpSession(session, this.uriMeta.decode(session.getUri()));
 
-                    if (response == null) {
-                        return HttpResponse.NO_RESPONSE;
-                    } else {
-                        return response;
-                    }
-                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                    e.printStackTrace();
+                HttpResponse response = (HttpResponse) this.method.invoke(this.provider, soraSession);
 
-                    return HttpResponse.INTERNAL_ERROR;
+                if (response == null) {
+                    return HttpResponse.NO_RESPONSE;
+                } else {
+                    return response;
                 }
+            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                e.printStackTrace();
+
+                return HttpResponse.INTERNAL_ERROR;
             }
         }
 
@@ -63,7 +73,7 @@ public class HttpEndpointWrapper {
     private static boolean isListenerMethod(@NonNull Method method) {
         return method.isAnnotationPresent(HttpEndpoint.class) &&
             (method.getParameterCount() == 1) &&
-            method.getParameters()[0].getType().isAssignableFrom(HttpSession.class);
+            method.getParameters()[0].getType().isAssignableFrom(SoraHttpSession.class);
     }
 
 }

@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import co.casterlabs.rakurai.io.http.HttpResponse;
 import co.casterlabs.rakurai.io.http.HttpSession;
 import co.casterlabs.sora.api.http.HttpProvider;
+import co.casterlabs.sora.api.http.SoraHttpSession;
 import lombok.NonNull;
 
 public class HttpProviderWrapper {
@@ -31,7 +32,7 @@ public class HttpProviderWrapper {
         return null;
     }
 
-    public HttpResponse onNoProvider(@NonNull HttpSession session) {
+    public HttpResponse onNoProvider(@NonNull SoraHttpSession session) {
         return this.provider.onNoProvider(session);
     }
 
