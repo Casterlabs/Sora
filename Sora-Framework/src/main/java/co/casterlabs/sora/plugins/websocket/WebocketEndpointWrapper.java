@@ -59,7 +59,17 @@ public class WebocketEndpointWrapper {
     }
 
     private static boolean isListenerMethod(@NonNull Method method) {
-        return method.isAnnotationPresent(WebsocketEndpoint.class) && (method.getParameterCount() == 1) && (method.getParameters()[0].getType().isAssignableFrom(WebsocketSession.class));
+        return method.isAnnotationPresent(WebsocketEndpoint.class) &&
+            (method.getParameterCount() == 1) &&
+            method.getParameters()[0].getType().isAssignableFrom(WebsocketSession.class);
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class WebsocketListenerPluginPair {
+        private SoraPlugin plugin;
+        private WebsocketListener listener;
+
     }
 
 }

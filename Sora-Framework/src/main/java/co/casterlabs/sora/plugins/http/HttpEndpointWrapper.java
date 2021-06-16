@@ -61,7 +61,9 @@ public class HttpEndpointWrapper {
     }
 
     private static boolean isListenerMethod(@NonNull Method method) {
-        return method.isAnnotationPresent(HttpEndpoint.class) && (method.getParameterCount() == 1) && (method.getParameters()[0].getType().isAssignableFrom(HttpSession.class));
+        return method.isAnnotationPresent(HttpEndpoint.class) &&
+            (method.getParameterCount() == 1) &&
+            method.getParameters()[0].getType().isAssignableFrom(HttpSession.class);
     }
 
 }
