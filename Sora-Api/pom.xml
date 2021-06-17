@@ -35,7 +35,7 @@
 		<dependency>
 			<groupId>com.github.casterlabs</groupId>
 			<artifactId>Rakurai</artifactId>
-			<version>0c3fce2</version> <!-- 1.4.1 -->
+			<version>a2bf00b</version> <!-- 1.4.1 -->
 			<scope>compile</scope>
 		</dependency>
 
