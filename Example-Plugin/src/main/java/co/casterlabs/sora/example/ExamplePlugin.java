@@ -1,16 +1,16 @@
 package co.casterlabs.sora.example;
 
 import co.casterlabs.rakurai.io.http.HttpResponse;
-import co.casterlabs.rakurai.io.http.HttpSession;
 import co.casterlabs.rakurai.io.http.StandardHttpStatus;
 import co.casterlabs.rakurai.io.http.websocket.Websocket;
 import co.casterlabs.rakurai.io.http.websocket.WebsocketListener;
-import co.casterlabs.rakurai.io.http.websocket.WebsocketSession;
 import co.casterlabs.sora.Sora;
 import co.casterlabs.sora.api.PluginImplementation;
 import co.casterlabs.sora.api.SoraPlugin;
 import co.casterlabs.sora.api.http.HttpProvider;
+import co.casterlabs.sora.api.http.SoraHttpSession;
 import co.casterlabs.sora.api.http.annotations.HttpEndpoint;
+import co.casterlabs.sora.api.websockets.SoraWebsocketSession;
 import co.casterlabs.sora.api.websockets.WebsocketProvider;
 import co.casterlabs.sora.api.websockets.annotations.WebsocketEndpoint;
 import lombok.SneakyThrows;
@@ -49,12 +49,18 @@ public class ExamplePlugin extends SoraPlugin implements HttpProvider, Websocket
     }
 
     @HttpEndpoint(uri = "/example")
-    public HttpResponse onExample(HttpSession session) {
+    public HttpResponse onExample(SoraHttpSession session) {
         return HttpResponse.newFixedLengthResponse(StandardHttpStatus.OK, "Hello " + session.getRemoteIpAddress() + "!");
     }
 
+    @HttpEndpoint(uri = "/echo/:echo")
+    public HttpResponse onEchoParam(SoraHttpSession session) {
+        // You can have uri parameters.
+        return HttpResponse.newFixedLengthResponse(StandardHttpStatus.OK, "Your parameter: " + session.getUriParameters().get("echo"));
+    }
+
     @WebsocketEndpoint(uri = "/echo")
-    public WebsocketListener onEcho(WebsocketSession session) {
+    public WebsocketListener onEcho(SoraWebsocketSession session) {
         return new WebsocketListener() {
 
             // SneakyThrows is a helpful annotation from lombok.
@@ -77,11 +83,6 @@ public class ExamplePlugin extends SoraPlugin implements HttpProvider, Websocket
             }
 
         };
-    }
-
-    @Override
-    public HttpResponse onNoProvider(HttpSession session) {
-        return HttpResponse.newFixedLengthResponse(StandardHttpStatus.NOT_FOUND, "Navigate to /example or open a Websocket on /echo");
     }
 
 }
