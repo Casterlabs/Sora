@@ -6,8 +6,10 @@ import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.sql.Driver;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ServiceLoader;
 import java.util.Set;
 
 import org.reflections.Reflections;
@@ -50,12 +52,21 @@ public class PluginLoader {
                         if (SoraPlugin.class.isAssignableFrom(clazz)) {
                             try {
                                 SoraPlugin plugin = (SoraPlugin) clazz.newInstance();
+                                ServiceLoader<Driver> sqlDrivers = ServiceLoader.load(java.sql.Driver.class, classLoader);
 
-                                Field field = SoraPlugin.class.getDeclaredField("classLoader");
+                                Field classLoaderField = SoraPlugin.class.getDeclaredField("classLoader");
+                                Field sqlDriversField = SoraPlugin.class.getDeclaredField("sqlDrivers");
 
-                                AccessHelper.makeAccessible(field);
+                                AccessHelper.makeAccessible(classLoaderField);
+                                AccessHelper.makeAccessible(sqlDriversField);
 
-                                field.set(plugin, classLoader);
+                                classLoaderField.set(plugin, classLoader);
+                                sqlDriversField.set(plugin, sqlDrivers);
+
+                                // Load them in
+                                for (Driver driver : sqlDrivers) {
+                                    driver.getClass().toString();
+                                }
 
                                 plugins.add(plugin);
                             } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | SecurityException | NoSuchFieldException e) {

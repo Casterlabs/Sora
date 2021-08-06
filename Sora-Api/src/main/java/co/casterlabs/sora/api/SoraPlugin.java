@@ -1,9 +1,13 @@
 package co.casterlabs.sora.api;
 
 import java.net.URLClassLoader;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ServiceLoader;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -19,6 +23,7 @@ public abstract class SoraPlugin {
 
     private @Getter List<Websocket> websockets = new LinkedList<>();
     private @Nullable URLClassLoader classLoader;
+    private ServiceLoader<Driver> sqlDrivers;
 
     public abstract void onInit(Sora sora);
 
@@ -44,6 +49,13 @@ public abstract class SoraPlugin {
         }
 
         this.onClose();
+
+        // Unload the SQL Drivers.
+        for (Driver driver : this.sqlDrivers) {
+            try {
+                DriverManager.deregisterDriver(driver);
+            } catch (SQLException ignored) {}
+        }
     }
 
 }
