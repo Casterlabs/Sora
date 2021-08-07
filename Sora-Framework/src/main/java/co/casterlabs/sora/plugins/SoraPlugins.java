@@ -2,6 +2,7 @@ package co.casterlabs.sora.plugins;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -157,6 +158,7 @@ public class SoraPlugins implements Sora, HttpListener {
         return HttpResponse.newFixedLengthResponse(StandardHttpStatus.NOT_IMPLEMENTED, new byte[0]);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public @Nullable WebsocketListener serveWebsocketSession(@NonNull String host, @NonNull WebsocketSession session, boolean secure) {
         for (WebsocketProviderWrapper wrapper : this.websocketWrappers.toArray(new WebsocketProviderWrapper[0])) {
@@ -167,27 +169,34 @@ public class SoraPlugins implements Sora, HttpListener {
                 SoraPlugin plugin = pair.getPlugin();
 
                 return new WebsocketListener() {
+                    private List<Websocket> websockets;
 
                     @Override
                     public void onOpen(Websocket websocket) {
+                        // Try to get the websocket variable to push and pop on.
                         try {
-                            plugin
-                                .getWebsockets()
-                                .add(websocket);
-                        } finally {
-                            original.onOpen(websocket);
+                            Field websocketsField = SoraPlugin.class.getDeclaredField("websockets");
+                            websocketsField.setAccessible(true);
+
+                            this.websockets = (List<Websocket>) websocketsField.get(plugin);
+                        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+                            e.printStackTrace();
                         }
+
+                        if (this.websockets != null) {
+                            this.websockets.add(websocket);
+                        }
+
+                        original.onOpen(websocket);
                     }
 
                     @Override
                     public void onClose(Websocket websocket) {
-                        try {
-                            plugin
-                                .getWebsockets()
-                                .remove(websocket);
-                        } finally {
-                            original.onClose(websocket);
+                        if (this.websockets != null) {
+                            this.websockets.remove(websocket);
                         }
+
+                        original.onClose(websocket);
                     }
 
                     @Override

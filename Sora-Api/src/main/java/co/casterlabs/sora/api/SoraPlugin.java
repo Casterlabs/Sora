@@ -5,6 +5,7 @@ import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -21,9 +22,14 @@ import xyz.e3ndr.fastloggingframework.logging.FastLogger;
 public abstract class SoraPlugin {
     private final @Getter FastLogger logger = new FastLogger(this.getName());
 
-    private @Getter List<Websocket> websockets = new LinkedList<>();
     private @Nullable URLClassLoader classLoader;
     private ServiceLoader<Driver> sqlDrivers;
+
+    private List<Websocket> websockets = Collections.synchronizedList(new LinkedList<>());
+
+    public final List<Websocket> getWebsockets() {
+        return new ArrayList<>(this.websockets);
+    }
 
     public abstract void onInit(Sora sora);
 
