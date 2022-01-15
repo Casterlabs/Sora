@@ -10,13 +10,25 @@ import co.casterlabs.rakurai.collections.HeaderMap;
 import co.casterlabs.rakurai.io.http.HttpMethod;
 import co.casterlabs.rakurai.io.http.HttpSession;
 import co.casterlabs.rakurai.io.http.HttpVersion;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 
-@AllArgsConstructor
 public class SoraHttpSession extends HttpSession {
     private HttpSession wrap;
     private @Getter Map<String, String> uriParameters;
+
+    private @Setter Object attachment;
+
+    public SoraHttpSession(@NonNull HttpSession wrap, Map<String, String> uriParameters) {
+        this.wrap = wrap;
+        this.uriParameters = uriParameters;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T getAttachment() {
+        return (T) this.attachment;
+    }
 
     /* ---------------- */
     /* Wrap             */
