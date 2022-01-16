@@ -9,11 +9,16 @@ import org.jetbrains.annotations.Nullable;
 
 import co.casterlabs.rakurai.io.http.HttpResponse;
 import co.casterlabs.rakurai.io.http.HttpSession;
+import co.casterlabs.sora.PreProcessorReflectionUtil;
 import co.casterlabs.sora.SoraUtil;
+import co.casterlabs.sora.api.http.HttpPreProcessor;
 import co.casterlabs.sora.api.http.HttpProvider;
 import co.casterlabs.sora.api.http.SoraHttpSession;
 import co.casterlabs.sora.api.http.annotations.HttpEndpoint;
+import co.casterlabs.sora.plugins.SoraPlugins;
 import lombok.NonNull;
+import xyz.e3ndr.fastloggingframework.logging.FastLogger;
+import xyz.e3ndr.fastloggingframework.logging.LogLevel;
 
 public class HttpEndpointWrapper {
     private HttpEndpoint annotation;
@@ -22,10 +27,13 @@ public class HttpEndpointWrapper {
 
     private URIParameterMeta uriMeta;
 
-    private HttpEndpointWrapper(HttpEndpoint annotation, HttpProvider provider, Method method) {
+    private SoraPlugins sora;
+
+    private HttpEndpointWrapper(HttpEndpoint annotation, HttpProvider provider, Method method, SoraPlugins sora) {
         this.annotation = annotation;
         this.provider = provider;
         this.method = method;
+        this.sora = sora;
 
         this.method.setAccessible(true);
 
@@ -38,6 +46,27 @@ public class HttpEndpointWrapper {
 
             try {
                 SoraHttpSession soraSession = new SoraHttpSession(session, this.uriMeta.decode(session.getUri()));
+
+                String preprocessorId = this.annotation.preprocessor();
+                if (!preprocessorId.isEmpty()) {
+                    HttpPreProcessor<?> preprocessor = this.sora.getHttpPreProcessor(preprocessorId);
+
+                    if (preprocessor == null) {
+                        FastLogger.logStatic(LogLevel.WARNING, "Could not find an http preprocessor with an id of %s", preprocessorId);
+                    } else {
+                        try {
+                            Object preprocessorData = this.annotation.preprocessorData().newInstance();
+                            HttpResponse preprocessedResponse = PreProcessorReflectionUtil.invokeHttpPreProcessor(preprocessor, preprocessorData, soraSession);
+
+                            if (preprocessedResponse != null) {
+                                return preprocessedResponse;
+                            }
+                        } catch (Throwable t) {
+                            FastLogger.logStatic(LogLevel.SEVERE, "An error occured whilst preprocessing (%s)\n%s", preprocessorId, t);
+                            return null;
+                        }
+                    }
+                }
 
                 HttpResponse response = (HttpResponse) this.method.invoke(this.provider, soraSession);
 
@@ -56,14 +85,14 @@ public class HttpEndpointWrapper {
         return null;
     }
 
-    public static List<HttpEndpointWrapper> wrap(@NonNull HttpProvider provider) {
+    public static List<HttpEndpointWrapper> wrap(@NonNull HttpProvider provider, @NonNull SoraPlugins sora) {
         List<HttpEndpointWrapper> wrappers = new ArrayList<>();
 
         for (Method method : provider.getClass().getMethods()) {
             if (isListenerMethod(method)) {
                 HttpEndpoint annotation = method.getAnnotation(HttpEndpoint.class);
 
-                wrappers.add(new HttpEndpointWrapper(annotation, provider, method));
+                wrappers.add(new HttpEndpointWrapper(annotation, provider, method, sora));
             }
         }
 

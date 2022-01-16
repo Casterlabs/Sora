@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import co.casterlabs.rakurai.io.http.websocket.WebsocketSession;
 import co.casterlabs.sora.api.SoraPlugin;
 import co.casterlabs.sora.api.websockets.WebsocketProvider;
+import co.casterlabs.sora.plugins.SoraPlugins;
 import co.casterlabs.sora.plugins.websocket.WebocketEndpointWrapper.WebsocketListenerPluginPair;
 import lombok.NonNull;
 
@@ -15,11 +16,11 @@ public class WebsocketProviderWrapper {
     private WebsocketProvider provider;
     private SoraPlugin plugin;
 
-    public WebsocketProviderWrapper(SoraPlugin plugin, WebsocketProvider provider) {
+    public WebsocketProviderWrapper(SoraPlugin plugin, WebsocketProvider provider, SoraPlugins sora) {
         this.provider = provider;
         this.plugin = plugin;
 
-        this.endpoints = WebocketEndpointWrapper.wrap(this.plugin, this.provider);
+        this.endpoints = WebocketEndpointWrapper.wrap(this.plugin, this.provider, sora);
     }
 
     public @Nullable WebsocketListenerPluginPair serve(@NonNull WebsocketSession session) {

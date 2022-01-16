@@ -8,16 +8,17 @@ import co.casterlabs.rakurai.io.http.HttpResponse;
 import co.casterlabs.rakurai.io.http.HttpSession;
 import co.casterlabs.sora.api.http.HttpProvider;
 import co.casterlabs.sora.api.http.SoraHttpSession;
+import co.casterlabs.sora.plugins.SoraPlugins;
 import lombok.NonNull;
 
 public class HttpProviderWrapper {
     private List<HttpEndpointWrapper> endpoints;
     private HttpProvider provider;
 
-    public HttpProviderWrapper(HttpProvider provider) {
+    public HttpProviderWrapper(HttpProvider provider, SoraPlugins sora) {
         this.provider = provider;
 
-        this.endpoints = HttpEndpointWrapper.wrap(this.provider);
+        this.endpoints = HttpEndpointWrapper.wrap(this.provider, sora);
     }
 
     public @Nullable HttpResponse serve(@NonNull HttpSession session) {

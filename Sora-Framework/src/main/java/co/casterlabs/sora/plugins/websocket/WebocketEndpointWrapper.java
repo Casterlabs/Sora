@@ -9,14 +9,19 @@ import org.jetbrains.annotations.Nullable;
 
 import co.casterlabs.rakurai.io.http.websocket.WebsocketListener;
 import co.casterlabs.rakurai.io.http.websocket.WebsocketSession;
+import co.casterlabs.sora.PreProcessorReflectionUtil;
 import co.casterlabs.sora.api.SoraPlugin;
 import co.casterlabs.sora.api.websockets.SoraWebsocketSession;
+import co.casterlabs.sora.api.websockets.WebsocketPreProcessor;
 import co.casterlabs.sora.api.websockets.WebsocketProvider;
 import co.casterlabs.sora.api.websockets.annotations.WebsocketEndpoint;
+import co.casterlabs.sora.plugins.SoraPlugins;
 import co.casterlabs.sora.plugins.http.URIParameterMeta;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
+import xyz.e3ndr.fastloggingframework.logging.FastLogger;
+import xyz.e3ndr.fastloggingframework.logging.LogLevel;
 
 public class WebocketEndpointWrapper {
     private WebsocketEndpoint annotation;
@@ -26,11 +31,14 @@ public class WebocketEndpointWrapper {
 
     private URIParameterMeta uriMeta;
 
-    private WebocketEndpointWrapper(WebsocketEndpoint annotation, WebsocketProvider provider, SoraPlugin plugin, Method method) {
+    private SoraPlugins sora;
+
+    private WebocketEndpointWrapper(WebsocketEndpoint annotation, WebsocketProvider provider, SoraPlugin plugin, Method method, SoraPlugins sora) {
         this.annotation = annotation;
         this.provider = provider;
         this.plugin = plugin;
         this.method = method;
+        this.sora = sora;
 
         this.method.setAccessible(true);
 
@@ -41,6 +49,27 @@ public class WebocketEndpointWrapper {
         if (session.getUri().matches(this.uriMeta.getUriRegex())) {
             try {
                 SoraWebsocketSession soraSession = new SoraWebsocketSession(session, this.uriMeta.decode(session.getUri()));
+
+                String preprocessorId = this.annotation.preprocessor();
+                if (!preprocessorId.isEmpty()) {
+                    WebsocketPreProcessor<?> preprocessor = this.sora.getWebsocketPreProcessor(preprocessorId);
+
+                    if (preprocessor == null) {
+                        FastLogger.logStatic(LogLevel.WARNING, "Could not find a websocket preprocessor with an id of %s", preprocessorId);
+                    } else {
+                        try {
+                            Object preprocessorData = this.annotation.preprocessorData().newInstance();
+                            boolean shouldDrop = PreProcessorReflectionUtil.invokeWebsocketPreProcessor(preprocessor, preprocessorData, soraSession);
+
+                            if (shouldDrop) {
+                                return null;
+                            }
+                        } catch (Throwable t) {
+                            FastLogger.logStatic(LogLevel.SEVERE, "An error occured whilst preprocessing (%s)\n%s", preprocessorId, t);
+                            return null;
+                        }
+                    }
+                }
 
                 WebsocketListener listener = (WebsocketListener) this.method.invoke(this.provider, soraSession);
 
@@ -55,14 +84,14 @@ public class WebocketEndpointWrapper {
         return null;
     }
 
-    public static List<WebocketEndpointWrapper> wrap(@NonNull SoraPlugin plugin, @NonNull WebsocketProvider provider) {
+    public static List<WebocketEndpointWrapper> wrap(@NonNull SoraPlugin plugin, @NonNull WebsocketProvider provider, @NonNull SoraPlugins sora) {
         List<WebocketEndpointWrapper> wrappers = new ArrayList<>();
 
         for (Method method : provider.getClass().getMethods()) {
             if (isListenerMethod(method)) {
                 WebsocketEndpoint annotation = method.getAnnotation(WebsocketEndpoint.class);
 
-                wrappers.add(new WebocketEndpointWrapper(annotation, provider, plugin, method));
+                wrappers.add(new WebocketEndpointWrapper(annotation, provider, plugin, method, sora));
             }
         }
 

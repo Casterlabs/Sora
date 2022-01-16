@@ -40,4 +40,8 @@ public @interface HttpEndpoint {
     @NonNull
     String uri();
 
+    String preprocessor() default "";
+
+    Class<?> preprocessorData() default Object.class;
+
 }

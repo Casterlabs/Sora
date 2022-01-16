@@ -22,10 +22,13 @@ import co.casterlabs.rakurai.io.http.websocket.WebsocketFrame;
 import co.casterlabs.rakurai.io.http.websocket.WebsocketListener;
 import co.casterlabs.rakurai.io.http.websocket.WebsocketSession;
 import co.casterlabs.sora.Sora;
+import co.casterlabs.sora.SoraBasicRequestPreProcessor;
 import co.casterlabs.sora.SoraFramework;
 import co.casterlabs.sora.api.SoraPlugin;
+import co.casterlabs.sora.api.http.HttpPreProcessor;
 import co.casterlabs.sora.api.http.HttpProvider;
 import co.casterlabs.sora.api.http.SoraHttpSession;
+import co.casterlabs.sora.api.websockets.WebsocketPreProcessor;
 import co.casterlabs.sora.api.websockets.WebsocketProvider;
 import co.casterlabs.sora.plugins.http.HttpProviderWrapper;
 import co.casterlabs.sora.plugins.websocket.WebocketEndpointWrapper.WebsocketListenerPluginPair;
@@ -38,14 +41,24 @@ public class SoraPlugins implements Sora, HttpListener {
     private Map<String, List<WebsocketProviderWrapper>> pluginWebsocketWrappers = new ConcurrentHashMap<>();
     private Map<String, List<HttpProviderWrapper>> pluginHttpWrappers = new ConcurrentHashMap<>();
 
-    // We maintain these two based off of the maps,
+    private Map<String, List<String>> pluginWebsocketPreProcessors = new ConcurrentHashMap<>();
+    private Map<String, List<String>> pluginHttpPreProcessors = new ConcurrentHashMap<>();
+
+    // We maintain these based off of the maps,
     // these are here for performance reasons.
     private List<WebsocketProviderWrapper> websocketWrappers = new ArrayList<>();
     private List<HttpProviderWrapper> httpWrappers = new ArrayList<>();
 
+    private Map<String, WebsocketPreProcessor<?>> websocketPreProcessors = new ConcurrentHashMap<>();
+    private Map<String, HttpPreProcessor<?>> httpPreProcessors = new ConcurrentHashMap<>();
+
+    public SoraPlugins() {
+        this.httpPreProcessors.put(SoraBasicRequestPreProcessor.ID, SoraBasicRequestPreProcessor.INSTANCE);
+    }
+
     @Override
     public void addHttpProvider(@NonNull SoraPlugin plugin, @NonNull HttpProvider httpProvider) {
-        HttpProviderWrapper wrapper = new HttpProviderWrapper(httpProvider);
+        HttpProviderWrapper wrapper = new HttpProviderWrapper(httpProvider, this);
 
         this.pluginHttpWrappers.get(plugin.getId()).add(wrapper);
         this.httpWrappers.add(wrapper);
@@ -53,10 +66,30 @@ public class SoraPlugins implements Sora, HttpListener {
 
     @Override
     public void addWebsocketProvider(@NonNull SoraPlugin plugin, @NonNull WebsocketProvider websocketProvider) {
-        WebsocketProviderWrapper wrapper = new WebsocketProviderWrapper(plugin, websocketProvider);
+        WebsocketProviderWrapper wrapper = new WebsocketProviderWrapper(plugin, websocketProvider, this);
 
         this.pluginWebsocketWrappers.get(plugin.getId()).add(wrapper);
         this.websocketWrappers.add(wrapper);
+    }
+
+    @Override
+    public void registerHttpPreProcessor(@NonNull SoraPlugin plugin, @NonNull String id, @NonNull HttpPreProcessor<?> httpPreProcessor) {
+        this.pluginHttpPreProcessors.get(plugin.getId()).add(id);
+        this.httpPreProcessors.put(id, httpPreProcessor);
+    }
+
+    @Override
+    public void registerWebsocketPreProcessor(@NonNull SoraPlugin plugin, @NonNull String id, @NonNull WebsocketPreProcessor<?> websocketPreProcessor) {
+        this.pluginWebsocketPreProcessors.get(plugin.getId()).add(id);
+        this.websocketPreProcessors.put(id, websocketPreProcessor);
+    }
+
+    public @Nullable HttpPreProcessor<?> getHttpPreProcessor(@NonNull String id) {
+        return this.httpPreProcessors.get(id);
+    }
+
+    public @Nullable WebsocketPreProcessor<?> getWebsocketPreProcessor(@NonNull String id) {
+        return this.websocketPreProcessors.get(id);
     }
 
     public List<SoraPlugin> getPlugins() {
@@ -86,6 +119,8 @@ public class SoraPlugins implements Sora, HttpListener {
 
             this.pluginWebsocketWrappers.put(id, new ArrayList<>());
             this.pluginHttpWrappers.put(id, new ArrayList<>());
+            this.pluginWebsocketPreProcessors.put(id, new ArrayList<>());
+            this.pluginHttpPreProcessors.put(id, new ArrayList<>());
 
             SoraFramework.LOGGER.info("Loaded plugin %s:%s (%s)", plugin.getName(), plugin.getAuthor(), id);
 
@@ -95,12 +130,14 @@ public class SoraPlugins implements Sora, HttpListener {
 
     public void unregister(@NonNull String id) {
         if (this.plugins.containsKey(id)) {
-            List<WebsocketProviderWrapper> websocketProviders = this.pluginWebsocketWrappers.remove(id);
-            List<HttpProviderWrapper> httpProviders = this.pluginHttpWrappers.remove(id);
+            // Remove all wrappers and processors.
+            this.websocketWrappers.removeAll(this.pluginWebsocketWrappers.remove(id));
+            this.httpWrappers.removeAll(this.pluginHttpWrappers.remove(id));
 
-            this.websocketWrappers.removeAll(websocketProviders);
-            this.httpWrappers.removeAll(httpProviders);
+            this.pluginWebsocketPreProcessors.remove(id).forEach(this.websocketPreProcessors::remove);
+            this.pluginHttpPreProcessors.remove(id).forEach(this.httpPreProcessors::remove);
 
+            // Unload the plugin.
             SoraPlugin plugin = this.plugins.remove(id);
             URLClassLoader loader = plugin.getClassLoader();
 
@@ -113,8 +150,6 @@ public class SoraPlugins implements Sora, HttpListener {
             } catch (Throwable ignored) {}
 
             // Important for the GC sweep to remove the class loader.
-            websocketProviders = null;
-            httpProviders = null;
             plugin = null;
             loader = null;
 
@@ -162,6 +197,8 @@ public class SoraPlugins implements Sora, HttpListener {
     @Override
     public @Nullable WebsocketListener serveWebsocketSession(@NonNull String host, @NonNull WebsocketSession session, boolean secure) {
         for (WebsocketProviderWrapper wrapper : this.websocketWrappers.toArray(new WebsocketProviderWrapper[0])) {
+            // TODO lookup the preprocessor, execute, then try to serve.
+
             WebsocketListenerPluginPair pair = wrapper.serve(session);
 
             if (pair != null) {
