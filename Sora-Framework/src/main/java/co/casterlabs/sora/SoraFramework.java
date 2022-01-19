@@ -17,6 +17,11 @@ public class SoraFramework {
     private SoraPlugins sora = new SoraPlugins();
     private HttpServer server;
 
+    public static long httpSessionsServed = 0;
+    public static long httpSessionsFailed = 0;
+    public static long websocketSessionsServed = 0;
+    public static long websocketSessionsFailed = 0;
+
     public SoraFramework(HttpServerBuilder builder) throws IOException {
         if (instance == null) {
             this.server = builder.build(this.sora);

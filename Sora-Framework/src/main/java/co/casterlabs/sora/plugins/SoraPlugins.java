@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.jetbrains.annotations.Nullable;
 
+import co.casterlabs.rakurai.io.http.DropConnectionException;
 import co.casterlabs.rakurai.io.http.HttpResponse;
 import co.casterlabs.rakurai.io.http.HttpSession;
 import co.casterlabs.rakurai.io.http.StandardHttpStatus;
@@ -167,85 +168,98 @@ public class SoraPlugins implements Sora, HttpListener {
 
     @Override
     public @Nullable HttpResponse serveSession(@NonNull String host, @NonNull HttpSession session, boolean secure) {
-        HttpProviderWrapper[] wrappers = this.httpWrappers.toArray(new HttpProviderWrapper[0]);
-
-        for (HttpProviderWrapper wrapper : wrappers) {
-            HttpResponse response = wrapper.serve(session);
-
-            if (response != null) {
-                return response;
-            }
-        }
-
-        // Try to return a default response.
-        {
-            SoraHttpSession soraSession = new SoraHttpSession(session, Collections.emptyMap());
+        try {
+            HttpProviderWrapper[] wrappers = this.httpWrappers.toArray(new HttpProviderWrapper[0]);
 
             for (HttpProviderWrapper wrapper : wrappers) {
-                HttpResponse response = wrapper.onNoProvider(soraSession);
+                HttpResponse response = wrapper.serve(session);
 
                 if (response != null) {
+                    SoraFramework.httpSessionsServed++;
                     return response;
                 }
             }
-        }
 
-        return HttpResponse.newFixedLengthResponse(StandardHttpStatus.NOT_IMPLEMENTED, new byte[0]);
+            // Try to return a default response.
+            {
+                SoraHttpSession soraSession = new SoraHttpSession(session, Collections.emptyMap());
+
+                for (HttpProviderWrapper wrapper : wrappers) {
+                    HttpResponse response = wrapper.onNoProvider(soraSession);
+
+                    if (response != null) {
+                        SoraFramework.httpSessionsServed++;
+                        return response;
+                    }
+                }
+            }
+
+            SoraFramework.httpSessionsFailed++;
+            return HttpResponse.newFixedLengthResponse(StandardHttpStatus.NOT_IMPLEMENTED, new byte[0]);
+        } catch (DropConnectionException e) {
+            SoraFramework.httpSessionsFailed++;
+            throw e;
+        }
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public @Nullable WebsocketListener serveWebsocketSession(@NonNull String host, @NonNull WebsocketSession session, boolean secure) {
-        for (WebsocketProviderWrapper wrapper : this.websocketWrappers.toArray(new WebsocketProviderWrapper[0])) {
-            // TODO lookup the preprocessor, execute, then try to serve.
+        try {
+            for (WebsocketProviderWrapper wrapper : this.websocketWrappers.toArray(new WebsocketProviderWrapper[0])) {
+                WebsocketListenerPluginPair pair = wrapper.serve(session);
 
-            WebsocketListenerPluginPair pair = wrapper.serve(session);
+                if (pair != null) {
+                    WebsocketListener original = pair.getListener();
+                    SoraPlugin plugin = pair.getPlugin();
 
-            if (pair != null) {
-                WebsocketListener original = pair.getListener();
-                SoraPlugin plugin = pair.getPlugin();
+                    SoraFramework.websocketSessionsServed++;
+                    return new WebsocketListener() {
+                        private List<Websocket> websockets;
 
-                return new WebsocketListener() {
-                    private List<Websocket> websockets;
+                        @Override
+                        public void onOpen(Websocket websocket) {
+                            // Try to get the websocket variable to push and pop on.
+                            try {
+                                Field websocketsField = SoraPlugin.class.getDeclaredField("websockets");
+                                websocketsField.setAccessible(true);
 
-                    @Override
-                    public void onOpen(Websocket websocket) {
-                        // Try to get the websocket variable to push and pop on.
-                        try {
-                            Field websocketsField = SoraPlugin.class.getDeclaredField("websockets");
-                            websocketsField.setAccessible(true);
+                                this.websockets = (List<Websocket>) websocketsField.get(plugin);
+                            } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+                                e.printStackTrace();
+                            }
 
-                            this.websockets = (List<Websocket>) websocketsField.get(plugin);
-                        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-                            e.printStackTrace();
+                            if (this.websockets != null) {
+                                this.websockets.add(websocket);
+                            }
+
+                            original.onOpen(websocket);
                         }
 
-                        if (this.websockets != null) {
-                            this.websockets.add(websocket);
+                        @Override
+                        public void onClose(Websocket websocket) {
+                            if (this.websockets != null) {
+                                this.websockets.remove(websocket);
+                            }
+
+                            original.onClose(websocket);
                         }
 
-                        original.onOpen(websocket);
-                    }
-
-                    @Override
-                    public void onClose(Websocket websocket) {
-                        if (this.websockets != null) {
-                            this.websockets.remove(websocket);
+                        @Override
+                        public void onFrame(Websocket websocket, WebsocketFrame frame) {
+                            original.onFrame(websocket, frame);
                         }
 
-                        original.onClose(websocket);
-                    }
-
-                    @Override
-                    public void onFrame(Websocket websocket, WebsocketFrame frame) {
-                        original.onFrame(websocket, frame);
-                    }
-
-                };
+                    };
+                }
             }
-        }
 
-        return null;
+            SoraFramework.websocketSessionsFailed++;
+            return null;
+        } catch (DropConnectionException e) {
+            SoraFramework.websocketSessionsFailed++;
+            throw e;
+        }
     }
 
 }

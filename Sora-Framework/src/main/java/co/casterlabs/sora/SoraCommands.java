@@ -95,6 +95,12 @@ public class SoraCommands implements CommandListener<Void> {
         }
     }
 
+    @Command(name = "served", description = "Lists how many requests have been served.")
+    public void onServedCommand(CommandEvent<Void> event) {
+        SoraFramework.LOGGER.info("# of http sessions served: %d, %d failed", SoraFramework.httpSessionsServed, SoraFramework.httpSessionsFailed);
+        SoraFramework.LOGGER.info("# of websocket sessions served: %d, %d failed", SoraFramework.websocketSessionsServed, SoraFramework.websocketSessionsFailed);
+    }
+
     @SneakyThrows
     public static void execute(String input) {
         try {
