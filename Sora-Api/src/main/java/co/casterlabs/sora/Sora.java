@@ -21,4 +21,11 @@ public interface Sora {
 
     public @Nullable SoraPlugin getPluginById(@NonNull String id);
 
+    /**
+     * @deprecated This is only to be used internally, using it yourself will get
+     *             you nowhere.
+     */
+    @Deprecated
+    public ClassLoader getGlobalClassLoader();
+
 }

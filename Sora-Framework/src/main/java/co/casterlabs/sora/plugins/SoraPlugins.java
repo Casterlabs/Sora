@@ -262,4 +262,9 @@ public class SoraPlugins implements Sora, HttpListener {
         }
     }
 
+    @Override
+    public GlobalClassLoader /* Type change */ getGlobalClassLoader() {
+        return GlobalClassLoader.instance;
+    }
+
 }
