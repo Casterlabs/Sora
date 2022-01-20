@@ -2,6 +2,8 @@ package co.casterlabs.sora;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import co.casterlabs.rakurai.io.http.server.HttpServerBuilder;
@@ -107,9 +109,33 @@ public class SoraLauncher implements Runnable {
 
         pluginsDir.mkdir();
 
+        List<Thread> loadThreads = new ArrayList<>(pluginsDir.listFiles().length);
+
         for (File file : pluginsDir.listFiles()) {
             if (file.isFile()) {
-                framework.getSora().loadPluginFile(file);
+                Thread t = new Thread(() -> {
+                    try {
+                        framework.getSora().loadPluginFile(file);
+                    } catch (IOException e) {
+                        FastLogger.logStatic(LogLevel.SEVERE, "An error occured whilst loading plugin:");
+                        FastLogger.logException(e);
+                    }
+                });
+
+                loadThreads.add(t);
+                t.setName("Sora Load Thread: " + file.getName());
+                t.start();
+            }
+        }
+
+        // Wait for all of the threads to finish.
+        for (Thread t : loadThreads) {
+            if (t.isAlive()) {
+                try {
+                    t.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
