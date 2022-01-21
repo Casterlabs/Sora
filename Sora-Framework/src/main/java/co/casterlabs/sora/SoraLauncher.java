@@ -45,7 +45,7 @@ public class SoraLauncher implements Runnable {
             "-s",
             "--server-implementation"
     }, description = "Sets the desired server implementation")
-    private HttpServerImplementation implementation = HttpServerImplementation.NANO;
+    private HttpServerImplementation implementation = HttpServerImplementation.UNDERTOW;
 
     public static void main(String[] args) throws IOException, InterruptedException {
         new CommandLine(new SoraLauncher()).execute(args);
