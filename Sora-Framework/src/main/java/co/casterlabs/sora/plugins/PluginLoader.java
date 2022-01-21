@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLClassLoader;
 import java.sql.Driver;
 import java.util.LinkedList;
@@ -25,11 +24,7 @@ public class PluginLoader {
     public static List<SoraPlugin> loadFile(@NonNull Sora sora, @NonNull File file) throws IOException {
         if (file.isFile()) {
             try {
-                URL url = file.toURI().toURL();
-
-                URLClassLoader classLoader = new URLClassLoader(new URL[] {
-                        url
-                }, PluginLoader.class.getClassLoader());
+                URLClassLoader classLoader = GlobalClassLoader.create(file.toURI().toURL());
 
                 Reflections reflections = new Reflections(classLoader);
 
@@ -40,6 +35,10 @@ public class PluginLoader {
                 // Free an ungodly amount of ram, Reflections seems to be inefficient.
                 reflections = null;
                 System.gc();
+
+                // TODO just iterate over all of the files (ZipEntry) and scan for the
+                // annotations, it's so much better that way.
+                // Steal the code from casterlabs-caffeinated, lol.
 
                 if (types.isEmpty()) {
                     classLoader.close();
