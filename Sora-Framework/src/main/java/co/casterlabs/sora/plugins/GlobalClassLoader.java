@@ -28,7 +28,7 @@ public class GlobalClassLoader extends ClassLoader {
             for (ChildClassLoader child : children.toArray(new ChildClassLoader[0]) /* Copy */) {
                 try {
                     return child.loadClassFromSelf(name, resolve);
-                } catch (ClassNotFoundException ignored) {}
+                } catch (ClassNotFoundException | NullPointerException ignored) {}
             }
 
             throw e; // We could not find class, so we throw.
