@@ -95,7 +95,7 @@ public class SoraHttpSession extends HttpSession {
     }
 
     @Override
-    public String getRemoteIpAddress() {
+    protected String getNetworkIpAddress() {
         return this.wrap.getRemoteIpAddress();
     }
 
