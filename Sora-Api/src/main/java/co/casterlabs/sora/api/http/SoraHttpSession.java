@@ -13,6 +13,7 @@ import co.casterlabs.rakurai.io.http.HttpVersion;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import xyz.e3ndr.fastloggingframework.logging.FastLogger;
 
 public class SoraHttpSession extends HttpSession {
     private HttpSession wrap;
@@ -28,6 +29,35 @@ public class SoraHttpSession extends HttpSession {
     @SuppressWarnings("unchecked")
     public <T> T getAttachment() {
         return (T) this.attachment;
+    }
+
+    /* ---------------- */
+    /* Some internals   */
+    /* ---------------- */
+
+    @Override
+    public String getRequestId() {
+        return this.wrap.getRequestId();
+    }
+
+    @Override
+    public FastLogger getLogger() {
+        return this.wrap.getLogger();
+    }
+
+    @Override
+    public boolean isProxied() {
+        return this.wrap.isProxied();
+    }
+
+    @Override
+    public String getRemoteIpAddress() {
+        return this.wrap.getRemoteIpAddress();
+    }
+
+    @Override
+    public List<String> getRequestHops() {
+        return this.wrap.getRequestHops();
     }
 
     /* ---------------- */

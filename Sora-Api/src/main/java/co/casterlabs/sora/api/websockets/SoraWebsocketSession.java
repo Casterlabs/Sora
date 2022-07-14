@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import xyz.e3ndr.fastloggingframework.logging.FastLogger;
 
 @AllArgsConstructor
 public class SoraWebsocketSession extends WebsocketSession {
@@ -26,6 +27,35 @@ public class SoraWebsocketSession extends WebsocketSession {
     @SuppressWarnings("unchecked")
     public <T> T getAttachment() {
         return (T) this.attachment;
+    }
+
+    /* ---------------- */
+    /* Some internals   */
+    /* ---------------- */
+
+    @Override
+    public String getRequestId() {
+        return this.wrap.getRequestId();
+    }
+
+    @Override
+    public FastLogger getLogger() {
+        return this.wrap.getLogger();
+    }
+
+    @Override
+    public boolean isProxied() {
+        return this.wrap.isProxied();
+    }
+
+    @Override
+    public String getRemoteIpAddress() {
+        return this.wrap.getRemoteIpAddress();
+    }
+
+    @Override
+    public List<String> getRequestHops() {
+        return this.wrap.getRequestHops();
     }
 
     /* ---------------- */
