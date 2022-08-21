@@ -59,13 +59,9 @@ public class GlobalClassLoader extends ClassLoader {
 //                FastLogger.logStatic(LogLevel.DEBUG, "%s: requested class %s", this.getURLs()[0], name);
 //            }
 
-            try {
-                // Try to load from our internal resources.
-                return this.loadClassFromSelf(name, resolve);
-            } catch (ClassNotFoundException | NoClassDefFoundError e) {
-                // Phone the parent, we don't have it.
-                return instance.loadClass(name, resolve); // This throws.
-            }
+            // We want to loop over all available jars to find the resource.
+            // This allows for dependency sharing, which helps with interoperability.
+            return instance.loadClass(name, resolve);
         }
 
         protected Class<?> loadClassFromSelf(String name, boolean resolve) throws ClassNotFoundException {
