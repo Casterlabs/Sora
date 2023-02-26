@@ -40,6 +40,13 @@ public class SoraLauncher implements Runnable {
     private boolean debug = false;
 
     @Option(names = {
+            "-bp",
+            "--behind-proxy"
+    }, description = "Whether or not Sora is sitting behind a proxy (e.g Cloudflare or Katana). "
+        + "Enabling this allows plugins to accurately get the client's IP address from the proxy service.")
+    private boolean behindProxy = true;
+
+    @Option(names = {
             "-s",
             "--server-implementation"
     }, description = "Sets the desired server implementation")
@@ -92,6 +99,7 @@ public class SoraLauncher implements Runnable {
 
         builder.setHostname(this.bindAddress);
         builder.setPort(this.port);
+        builder.setBehindProxy(this.behindProxy);
 
         return new SoraFramework(builder);
     }
