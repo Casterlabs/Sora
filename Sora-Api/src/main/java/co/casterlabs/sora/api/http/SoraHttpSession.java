@@ -1,13 +1,13 @@
 package co.casterlabs.sora.api.http;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
 import org.jetbrains.annotations.Nullable;
 
 import co.casterlabs.rakurai.collections.HeaderMap;
-import co.casterlabs.rakurai.io.http.HttpMethod;
 import co.casterlabs.rakurai.io.http.HttpSession;
 import co.casterlabs.rakurai.io.http.HttpVersion;
 import lombok.Getter;
@@ -115,8 +115,8 @@ public class SoraHttpSession extends HttpSession {
     }
 
     @Override
-    public HttpMethod getMethod() {
-        return this.wrap.getMethod();
+    public String getRawMethod() {
+        return this.wrap.getRawMethod();
     }
 
     @Override
@@ -127,6 +127,11 @@ public class SoraHttpSession extends HttpSession {
     @Override
     protected String getNetworkIpAddress() {
         return this.wrap.getRemoteIpAddress();
+    }
+
+    @Override
+    public InputStream getRequestBodyStream() throws IOException {
+        return this.wrap.getRequestBodyStream();
     }
 
 }
