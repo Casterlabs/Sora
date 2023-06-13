@@ -4,8 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Scanner;
 
-import co.casterlabs.rakurai.io.http.server.HttpServerBuilder;
-import co.casterlabs.rakurai.io.http.server.HttpServerImplementation;
+import co.casterlabs.rakurai.io.http.server.config.HttpServerBuilder;
+import co.casterlabs.rakurai.io.http.server.config.HttpServerImplementation;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
@@ -46,12 +46,6 @@ public class SoraLauncher implements Runnable {
         + "Enabling this allows plugins to accurately get the client's IP address from the proxy service.")
     private boolean behindProxy = true;
 
-    @Option(names = {
-            "-s",
-            "--server-implementation"
-    }, description = "Sets the desired server implementation")
-    private HttpServerImplementation implementation = HttpServerImplementation.UNDERTOW;
-
     public static void main(String[] args) throws IOException, InterruptedException {
         new CommandLine(new SoraLauncher()).execute(args);
     }
@@ -81,21 +75,7 @@ public class SoraLauncher implements Runnable {
             FastLoggingFramework.setDefaultLevel(LogLevel.TRACE);
         }
 
-        HttpServerBuilder builder;
-
-        switch (this.implementation) {
-            case UNDERTOW:
-                FastLogger.logStatic("Using Undertow as the server implementation.");
-                builder = HttpServerBuilder.getUndertowBuilder();
-                break;
-
-            case NANO:
-            default:
-                FastLogger.logStatic("Using Nano as the server implementation.");
-                builder = HttpServerBuilder.getNanoBuilder();
-                break;
-
-        }
+        HttpServerBuilder builder = HttpServerBuilder.get(HttpServerImplementation.RAKURAI);
 
         builder.setHostname(this.bindAddress);
         builder.setPort(this.port);

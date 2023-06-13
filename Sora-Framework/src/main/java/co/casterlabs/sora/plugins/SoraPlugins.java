@@ -13,15 +13,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.jetbrains.annotations.Nullable;
 
-import co.casterlabs.rakurai.io.http.DropConnectionException;
-import co.casterlabs.rakurai.io.http.HttpResponse;
-import co.casterlabs.rakurai.io.http.HttpSession;
 import co.casterlabs.rakurai.io.http.StandardHttpStatus;
+import co.casterlabs.rakurai.io.http.server.DropConnectionException;
 import co.casterlabs.rakurai.io.http.server.HttpListener;
-import co.casterlabs.rakurai.io.http.websocket.Websocket;
-import co.casterlabs.rakurai.io.http.websocket.WebsocketFrame;
-import co.casterlabs.rakurai.io.http.websocket.WebsocketListener;
-import co.casterlabs.rakurai.io.http.websocket.WebsocketSession;
+import co.casterlabs.rakurai.io.http.server.HttpResponse;
+import co.casterlabs.rakurai.io.http.server.HttpSession;
+import co.casterlabs.rakurai.io.http.server.websocket.Websocket;
+import co.casterlabs.rakurai.io.http.server.websocket.WebsocketListener;
+import co.casterlabs.rakurai.io.http.server.websocket.WebsocketSession;
 import co.casterlabs.sora.Sora;
 import co.casterlabs.sora.SoraBasicRequestPreProcessor;
 import co.casterlabs.sora.SoraFramework;
@@ -246,8 +245,13 @@ public class SoraPlugins implements Sora, HttpListener {
                         }
 
                         @Override
-                        public void onFrame(Websocket websocket, WebsocketFrame frame) {
-                            original.onFrame(websocket, frame);
+                        public void onText(Websocket websocket, String message) {
+                            original.onText(websocket, message);
+                        }
+
+                        @Override
+                        public void onBinary(Websocket websocket, byte[] bytes) {
+                            original.onBinary(websocket, bytes);
                         }
 
                     };

@@ -8,8 +8,8 @@ import java.util.Map;
 import org.jetbrains.annotations.Nullable;
 
 import co.casterlabs.rakurai.collections.HeaderMap;
-import co.casterlabs.rakurai.io.http.HttpSession;
 import co.casterlabs.rakurai.io.http.HttpVersion;
+import co.casterlabs.rakurai.io.http.server.HttpSession;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -102,11 +102,6 @@ public class SoraHttpSession extends HttpSession {
     @Override
     public Map<String, String> parseFormBody() throws IOException {
         return this.wrap.parseFormBody();
-    }
-
-    @Override
-    public String getHost() {
-        return this.wrap.getHost();
     }
 
     @Override

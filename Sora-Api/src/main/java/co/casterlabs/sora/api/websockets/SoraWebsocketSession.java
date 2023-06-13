@@ -5,7 +5,7 @@ import java.util.Map;
 
 import co.casterlabs.rakurai.collections.HeaderMap;
 import co.casterlabs.rakurai.io.http.HttpVersion;
-import co.casterlabs.rakurai.io.http.websocket.WebsocketSession;
+import co.casterlabs.rakurai.io.http.server.websocket.WebsocketSession;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
@@ -85,11 +85,6 @@ public class SoraWebsocketSession extends WebsocketSession {
     @Override
     public String getQueryString() {
         return this.wrap.getQueryString();
-    }
-
-    @Override
-    public String getHost() {
-        return this.wrap.getHost();
     }
 
     @Override

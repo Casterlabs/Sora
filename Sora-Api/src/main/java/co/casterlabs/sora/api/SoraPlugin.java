@@ -12,8 +12,7 @@ import java.util.ServiceLoader;
 
 import org.jetbrains.annotations.Nullable;
 
-import co.casterlabs.rakurai.io.http.websocket.Websocket;
-import co.casterlabs.rakurai.io.http.websocket.WebsocketCloseCode;
+import co.casterlabs.rakurai.io.http.server.websocket.Websocket;
 import co.casterlabs.sora.Sora;
 import lombok.Getter;
 import lombok.NonNull;
@@ -50,7 +49,7 @@ public abstract class SoraPlugin {
     public final void close() {
         for (Websocket websocket : new ArrayList<>(this.websockets)) {
             try {
-                websocket.close(WebsocketCloseCode.GOING_AWAY);
+                websocket.close();
             } catch (Throwable ignored) {}
         }
 

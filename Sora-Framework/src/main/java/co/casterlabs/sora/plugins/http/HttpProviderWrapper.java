@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
-import co.casterlabs.rakurai.io.http.HttpResponse;
-import co.casterlabs.rakurai.io.http.HttpSession;
+import co.casterlabs.rakurai.io.http.server.HttpResponse;
+import co.casterlabs.rakurai.io.http.server.HttpSession;
 import co.casterlabs.sora.api.http.HttpProvider;
 import co.casterlabs.sora.api.http.SoraHttpSession;
 import co.casterlabs.sora.plugins.SoraPlugins;
