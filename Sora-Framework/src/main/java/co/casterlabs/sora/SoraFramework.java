@@ -2,8 +2,8 @@ package co.casterlabs.sora;
 
 import java.io.IOException;
 
-import co.casterlabs.rakurai.io.http.server.HttpServer;
-import co.casterlabs.rakurai.io.http.server.config.HttpServerBuilder;
+import co.casterlabs.rhs.server.HttpServer;
+import co.casterlabs.rhs.server.HttpServerBuilder;
 import co.casterlabs.sora.plugins.SoraPlugins;
 import lombok.Getter;
 import xyz.e3ndr.fastloggingframework.logging.FastLogger;

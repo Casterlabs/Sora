@@ -12,7 +12,7 @@ import java.util.ServiceLoader;
 
 import org.jetbrains.annotations.Nullable;
 
-import co.casterlabs.rakurai.io.http.server.websocket.Websocket;
+import co.casterlabs.rhs.session.Websocket;
 import co.casterlabs.sora.Sora;
 import lombok.Getter;
 import lombok.NonNull;

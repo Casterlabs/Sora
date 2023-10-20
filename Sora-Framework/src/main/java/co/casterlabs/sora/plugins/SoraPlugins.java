@@ -13,14 +13,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.jetbrains.annotations.Nullable;
 
-import co.casterlabs.rakurai.io.http.StandardHttpStatus;
-import co.casterlabs.rakurai.io.http.server.DropConnectionException;
-import co.casterlabs.rakurai.io.http.server.HttpListener;
-import co.casterlabs.rakurai.io.http.server.HttpResponse;
-import co.casterlabs.rakurai.io.http.server.HttpSession;
-import co.casterlabs.rakurai.io.http.server.websocket.Websocket;
-import co.casterlabs.rakurai.io.http.server.websocket.WebsocketListener;
-import co.casterlabs.rakurai.io.http.server.websocket.WebsocketSession;
+import co.casterlabs.rhs.protocol.StandardHttpStatus;
+import co.casterlabs.rhs.server.HttpListener;
+import co.casterlabs.rhs.server.HttpResponse;
+import co.casterlabs.rhs.session.HttpSession;
+import co.casterlabs.rhs.session.Websocket;
+import co.casterlabs.rhs.session.WebsocketListener;
+import co.casterlabs.rhs.session.WebsocketSession;
+import co.casterlabs.rhs.util.DropConnectionException;
 import co.casterlabs.sora.Sora;
 import co.casterlabs.sora.SoraBasicRequestPreProcessor;
 import co.casterlabs.sora.SoraFramework;
@@ -166,7 +166,7 @@ public class SoraPlugins implements Sora, HttpListener {
     }
 
     @Override
-    public @Nullable HttpResponse serveSession(@NonNull String host, @NonNull HttpSession session, boolean secure) {
+    public @Nullable HttpResponse serveHttpSession(@NonNull HttpSession session) {
         try {
             HttpProviderWrapper[] wrappers = this.httpWrappers.toArray(new HttpProviderWrapper[0]);
 
@@ -203,7 +203,7 @@ public class SoraPlugins implements Sora, HttpListener {
 
     @SuppressWarnings("unchecked")
     @Override
-    public @Nullable WebsocketListener serveWebsocketSession(@NonNull String host, @NonNull WebsocketSession session, boolean secure) {
+    public @Nullable WebsocketListener serveWebsocketSession(@NonNull WebsocketSession session) {
         try {
             for (WebsocketProviderWrapper wrapper : this.websocketWrappers.toArray(new WebsocketProviderWrapper[0])) {
                 WebsocketListenerPluginPair pair = wrapper.serve(session);

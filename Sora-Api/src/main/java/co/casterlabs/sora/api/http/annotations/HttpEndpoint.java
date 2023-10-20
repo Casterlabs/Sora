@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 import org.jetbrains.annotations.Nullable;
 
-import co.casterlabs.rakurai.io.http.HttpMethod;
+import co.casterlabs.rhs.protocol.HttpMethod;
 import lombok.NonNull;
 
 /**
@@ -26,6 +26,7 @@ public @interface HttpEndpoint {
     HttpMethod[] allowedMethods() default {
             HttpMethod.GET,
             HttpMethod.HEAD,
+            HttpMethod.QUERY,
             HttpMethod.POST,
             HttpMethod.PUT,
             HttpMethod.DELETE,

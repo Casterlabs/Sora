@@ -7,8 +7,8 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
-import co.casterlabs.rakurai.io.http.server.HttpResponse;
-import co.casterlabs.rakurai.io.http.server.HttpSession;
+import co.casterlabs.rhs.server.HttpResponse;
+import co.casterlabs.rhs.session.HttpSession;
 import co.casterlabs.sora.PreProcessorReflectionUtil;
 import co.casterlabs.sora.SoraUtil;
 import co.casterlabs.sora.api.http.HttpPreProcessor;

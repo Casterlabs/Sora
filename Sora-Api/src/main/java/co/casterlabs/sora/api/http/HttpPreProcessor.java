@@ -2,7 +2,7 @@ package co.casterlabs.sora.api.http;
 
 import org.jetbrains.annotations.Nullable;
 
-import co.casterlabs.rakurai.io.http.server.HttpResponse;
+import co.casterlabs.rhs.server.HttpResponse;
 import lombok.NonNull;
 
 public interface HttpPreProcessor<T> {

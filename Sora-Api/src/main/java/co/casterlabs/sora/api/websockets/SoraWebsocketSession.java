@@ -3,9 +3,12 @@ package co.casterlabs.sora.api.websockets;
 import java.util.List;
 import java.util.Map;
 
-import co.casterlabs.rakurai.collections.HeaderMap;
-import co.casterlabs.rakurai.io.http.HttpVersion;
-import co.casterlabs.rakurai.io.http.server.websocket.WebsocketSession;
+import org.jetbrains.annotations.Nullable;
+
+import co.casterlabs.rhs.protocol.HttpVersion;
+import co.casterlabs.rhs.session.TLSVersion;
+import co.casterlabs.rhs.session.WebsocketSession;
+import co.casterlabs.rhs.util.HeaderMap;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
@@ -46,16 +49,6 @@ public class SoraWebsocketSession extends WebsocketSession {
     @Override
     public boolean isProxied() {
         return this.wrap.isProxied();
-    }
-
-    @Override
-    public String getRemoteIpAddress() {
-        return this.wrap.getRemoteIpAddress();
-    }
-
-    @Override
-    public List<String> getRequestHops() {
-        return this.wrap.getRequestHops();
     }
 
     /* ---------------- */
@@ -100,6 +93,11 @@ public class SoraWebsocketSession extends WebsocketSession {
     @Override
     protected String getNetworkIpAddress() {
         return this.wrap.getRemoteIpAddress();
+    }
+
+    @Override
+    public @Nullable TLSVersion getTLSVersion() {
+        return this.wrap.getTLSVersion();
     }
 
 }

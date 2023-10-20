@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>co.casterlabs</groupId>
 		<artifactId>Sora</artifactId>
-		<version>2.12.4</version>
+		<version>2.13.0</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
@@ -65,12 +65,6 @@
 			<groupId>co.casterlabs</groupId>
 			<artifactId>Sora-Api</artifactId>
 			<version>${project.parent.version}</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>co.casterlabs.Rakurai</groupId>
-			<artifactId>ImplRakurai</artifactId>
-			<version>1.17.7</version>
 			<scope>compile</scope>
 		</dependency>
 

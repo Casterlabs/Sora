@@ -4,8 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Scanner;
 
-import co.casterlabs.rakurai.io.http.server.config.HttpServerBuilder;
-import co.casterlabs.rakurai.io.http.server.config.HttpServerImplementation;
+import co.casterlabs.rhs.server.HttpServerBuilder;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
@@ -75,13 +74,12 @@ public class SoraLauncher implements Runnable {
             FastLoggingFramework.setDefaultLevel(LogLevel.TRACE);
         }
 
-        HttpServerBuilder builder = HttpServerBuilder.get(HttpServerImplementation.RAKURAI);
-
-        builder.setHostname(this.bindAddress);
-        builder.setPort(this.port);
-        builder.setBehindProxy(this.behindProxy);
-
-        return new SoraFramework(builder);
+        return new SoraFramework(
+            new HttpServerBuilder()
+                .setHostname(this.bindAddress)
+                .setPort(this.port)
+                .setBehindProxy(this.behindProxy)
+        );
     }
 
     public SoraFramework buildWithPluginLoader() throws IOException {

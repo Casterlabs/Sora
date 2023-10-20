@@ -7,9 +7,10 @@ import java.util.Map;
 
 import org.jetbrains.annotations.Nullable;
 
-import co.casterlabs.rakurai.collections.HeaderMap;
-import co.casterlabs.rakurai.io.http.HttpVersion;
-import co.casterlabs.rakurai.io.http.server.HttpSession;
+import co.casterlabs.rhs.protocol.HttpVersion;
+import co.casterlabs.rhs.session.HttpSession;
+import co.casterlabs.rhs.session.TLSVersion;
+import co.casterlabs.rhs.util.HeaderMap;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -48,16 +49,6 @@ public class SoraHttpSession extends HttpSession {
     @Override
     public boolean isProxied() {
         return this.wrap.isProxied();
-    }
-
-    @Override
-    public String getRemoteIpAddress() {
-        return this.wrap.getRemoteIpAddress();
-    }
-
-    @Override
-    public List<String> getRequestHops() {
-        return this.wrap.getRequestHops();
     }
 
     /* ---------------- */
@@ -100,11 +91,6 @@ public class SoraHttpSession extends HttpSession {
     }
 
     @Override
-    public Map<String, String> parseFormBody() throws IOException {
-        return this.wrap.parseFormBody();
-    }
-
-    @Override
     public int getPort() {
         return this.wrap.getPort();
     }
@@ -127,6 +113,11 @@ public class SoraHttpSession extends HttpSession {
     @Override
     public InputStream getRequestBodyStream() throws IOException {
         return this.wrap.getRequestBodyStream();
+    }
+
+    @Override
+    public @Nullable TLSVersion getTLSVersion() {
+        return this.wrap.getTLSVersion();
     }
 
 }

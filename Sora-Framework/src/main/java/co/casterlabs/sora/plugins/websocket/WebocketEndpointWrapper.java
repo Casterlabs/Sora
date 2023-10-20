@@ -7,8 +7,8 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
-import co.casterlabs.rakurai.io.http.server.websocket.WebsocketListener;
-import co.casterlabs.rakurai.io.http.server.websocket.WebsocketSession;
+import co.casterlabs.rhs.session.WebsocketListener;
+import co.casterlabs.rhs.session.WebsocketSession;
 import co.casterlabs.sora.PreProcessorReflectionUtil;
 import co.casterlabs.sora.api.SoraPlugin;
 import co.casterlabs.sora.api.websockets.SoraWebsocketSession;

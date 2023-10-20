@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
-import co.casterlabs.rakurai.io.http.server.websocket.WebsocketSession;
+import co.casterlabs.rhs.session.WebsocketSession;
 import co.casterlabs.sora.api.SoraPlugin;
 import co.casterlabs.sora.api.websockets.WebsocketProvider;
 import co.casterlabs.sora.plugins.SoraPlugins;
