@@ -76,9 +76,9 @@ public class SoraLauncher implements Runnable {
 
         return new SoraFramework(
             new HttpServerBuilder()
-                .setHostname(this.bindAddress)
-                .setPort(this.port)
-                .setBehindProxy(this.behindProxy)
+                .withHostname(this.bindAddress)
+                .withPort(this.port)
+                .withBehindProxy(this.behindProxy)
         );
     }
 

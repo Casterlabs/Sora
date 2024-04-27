@@ -86,6 +86,11 @@ public class SoraWebsocketSession extends WebsocketSession {
     }
 
     @Override
+    public String getRawMethod() {
+        return this.wrap.getRawMethod();
+    }
+
+    @Override
     public HttpVersion getVersion() {
         return this.wrap.getVersion();
     }
